@@ -21,7 +21,10 @@
         </div>
 
         <!-- Анимация загрузки -->
-        <div v-if="isLoading" class="loader"></div>
+        <div v-if="isLoading" class="loader-block">
+          <div v-if="isLoading" class="loader"></div>
+        </div>
+        
 
         <!-- Отображение погоды, если данные получены -->
         <div class="weather-wrap" v-if="typeof weather.main != 'undefined' && !isLoading">
@@ -72,10 +75,7 @@
             this.setResults(data);
             this.isLoading = false; 
           }, 2500);
-
-          console.log("Новые данные:", data); 
         } catch (error) {
-          console.error("Ошибка загрузки погоды:", error);
           this.isLoading = false;
         }
       },
@@ -112,262 +112,190 @@
 </script>
 
 <style lang="scss" scoped>
-@mixin fontSizeWeight ($fs, $fw){
+// === Переменные и миксины ===
+@mixin fontSizeWeight($fs, $fw) {
   font-size: $fs;
   font-weight: $fw;
 }
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 2s linear infinite;
-  margin: 2rem auto;
-  transition: 0.6s;
-}
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-#background-img{
-    background-image: url('./assets/image/cold-bg.png');
-    background-size:cover;
+// === Общие стили ===
+#app {
+  background-color: #8398a1;
+  &.warm {
+    background-color: #a13b84;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    transition: 0.6s;
-
-
-
-    main{
-    position: relative;
-    z-index: 2;
-    min-height: 100vh;
-    padding: 1.6rem;
-    background-image: linear-gradient(to bottom, rgba($color: #000000, $alpha: 0.25), rgba($color: #000000, $alpha: 0.75));
-
-      .search-box{
-        width: 100%;
-        margin-bottom: 1.7rem;
-
-        .search-bar{
-          display: block;
-          width: 100%;
-          padding: 1rem;
-          color: #313131;
-          font-size: 1.25rem;
-
-          appearance: none;
-          border: none;
-          outline: none;
-          background: none;
-
-          box-shadow: 0 0 0.5rem rgba($color: #000000, $alpha: 0.25);
-          background-color: rgba($color: #fff, $alpha: 0.5);
-          border-radius: 0 1rem;
-          transition: 0.4s;
-
-          &:focus{
-            box-shadow: 0 0 1rem rgba($color: #000000, $alpha: 0.25);
-            background-color: rgba($color: #fff, $alpha: 0.75);
-            border-radius: 1rem 0;
-          }
-        }
-      }
-
-      .weather-wrap{
-        color: #fff;
-
-        .location-box{
-          text-align: center;
-
-          .location{
-            @include fontSizeWeight (2rem, 500);
-            text-shadow: 0.1rem 0.2rem  rgba($color: #000000, $alpha: 0.25);
-          }
-          .date{
-            @include fontSizeWeight (1.4rem, 300);
-            font-style: italic;
-          }  
-        }
-        .weather-box{
-          text-align: center;
-
-          .temp{
-            display: inline-block;
-            padding: 0.55rem 1.8rem;
-            @include fontSizeWeight (6.5rem, 900);
-
-            text-shadow: 3px 6px rgba($color: #000000, $alpha: 0.25);
-            background-color: rgba($color: #fff, $alpha: 0.25);
-            border-radius: 1rem;
-            margin: 2rem 0;
-
-            box-shadow: 0.2rem 0.4rem rgba($color: #000000, $alpha: 0.25);
-          }
-          .weather{
-            @include fontSizeWeight (3rem, 700);
-            font-style: italic;
-            text-shadow: 0.2rem 0.4rem  rgba($color: #000000, $alpha: 0.25);
-          }
-        }
-      }
-    }
+  }
 }
 
-.Clear{
+#background-img {
+  background-image: url("./assets/image/cold-bg.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 0.6s;
+  &.warm {
+    background-image: url("./assets/image/warm-bg.png");
+  }
+}
+
+// === Блок загрузчика ===
+.loader-block {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.loader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40%;
+  aspect-ratio: 1 / 1;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    animation-duration: 1.8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    filter: drop-shadow(0 0 11px rgba(255, 255, 255, 0.75));
+  }
+  &::before {
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 0 17px #fff;
+    animation-name: pulsA;
+  }
+  &::after {
+    width: calc(100% - 34px);
+    height: calc(100% - 34px);
+    box-shadow: 0 0 0 0 #fff;
+    animation-name: pulsB;
+  }
+}
+
+// === Анимации загрузчика ===
+@keyframes pulsA {
+  0% { box-shadow: inset 0 0 0 17px #fff; opacity: 1; }
+  50%, 100% { box-shadow: inset 0 0 0 0 #fff; opacity: 0; }
+}
+
+@keyframes pulsB {
+  0%, 50% { box-shadow: 0 0 0 0 #fff; opacity: 0; }
+  100% { box-shadow: 0 0 0 17px #fff; opacity: 1; }
+}
+
+// === Блок погоды ===
+main {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding: 1.6rem;
+  background-image: linear-gradient(to bottom, rgba(#000, 0.25), rgba(#000, 0.75));
+  .search-box {
+    width: 100%;
+    margin-bottom: 1.7rem;
+    .search-bar {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      color: #313131;
+      font-size: 1.25rem;
+      appearance: none;
+      border: none;
+      outline: none;
+      background: none;
+      box-shadow: 0 0 0.5rem rgba(#000, 0.25);
+      background-color: rgba(#fff, 0.5);
+      border-radius: 0 1rem;
+      transition: 0.4s;
+      &:focus {
+        box-shadow: 0 0 1rem rgba(#000, 0.25);
+        background-color: rgba(#fff, 0.75);
+        border-radius: 1rem 0;
+      }
+    }
+  }
+  .weather-wrap {
+    color: #fff;
+    .location-box {
+      text-align: center;
+      .location { @include fontSizeWeight(2rem, 500); text-shadow: 0.1rem 0.2rem rgba(#000, 0.25); }
+      .date { @include fontSizeWeight(1.4rem, 300); font-style: italic; }
+    }
+    .weather-box {
+      text-align: center;
+      .temp {
+        display: inline-block;
+        padding: 0.55rem 1.8rem;
+        @include fontSizeWeight(6.5rem, 900);
+        text-shadow: 3px 6px rgba(#000, 0.25);
+        background-color: rgba(#fff, 0.25);
+        border-radius: 1rem;
+        margin: 2rem 0;
+        box-shadow: 0.2rem 0.4rem rgba(#000, 0.25);
+      }
+      .weather {
+        @include fontSizeWeight(3rem, 700);
+        font-style: italic;
+        text-shadow: 0.2rem 0.4rem rgba(#000, 0.25);
+      }
+    }
+  }
+}
+
+// === Анимации погоды ===
+.Clear {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('./assets/animation/birds.gif');
+  background-image: url("./assets/animation/birds.gif");
   background-size: 30%;
   background-repeat: no-repeat;
   animation: clear 7.5s linear infinite;
+  @media (min-width: 800px) { background-size: 10%; }
 }
 
-@media (min-width: 800px) {
-  .Clear{
-    background-size: 10%;
-}
-  
-}
-
-@keyframes clear{
-  0% {
-    background-position: 200% 30%;
-    opacity: 0.1;
-  }
-  50%{
-    background-position: 50% 30%;
-    opacity: 0.55;
-  }
-  100%{
-    background-position: -100% 30%;
-    opacity: 0.1;
-  }
+@keyframes clear {
+  0% { background-position: 200% 30%; opacity: 0.1; }
+  50% { background-position: 50% 30%; opacity: 0.55; }
+  100% { background-position: -100% 30%; opacity: 0.1; }
 }
 
-.Clouds{
+// === Другие анимации (Облака, Дождь, Туман) ===
+.Clouds {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('./assets/animation/cloud.png');
+  background-image: url("./assets/animation/cloud.png");
   background-size: 50%;
   background-repeat: repeat-x;
   animation: cloud 30s linear infinite;
   z-index: 1;
 }
 
-@keyframes cloud{
-  0% {
-    background-position: -100% 10%;
-  }
-  50%{
-    background-position: 50% 10%;
-  }
-  100%{
-    background-position: 200% 10%;
-  }
+@keyframes cloud {
+  0% { background-position: -100% 10%; }
+  50% { background-position: 50% 10%; }
+  100% { background-position: 200% 10%; }
 }
 
-.Rain, .Drizzle{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100%;
-  background-image: url('./assets/animation/rain.png');
-  background-size:cover;
-  background-repeat: repeat;
-  animation: rain 0.5s linear infinite;
-  opacity: 0.5;
-}
-
-
-@keyframes rain{
-  0% {
-    background-position-y: 0;
-  }
-  100% {
-    background-position-y: 100vh;
-  }
-
-}
-
-
-.Snow{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100%;
-  background-image: url('./assets/animation/snow.gif');
-  background-size:cover;
-  background-repeat: repeat;
-  animation: rain 30s linear infinite;
-  opacity: 0.4;
-}
-
-
-// .Thunderstorm{
-
-// }
-
-// @keyframes thunderstorm{
-
-// }
-.Mist, .Fog{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('./assets/animation/cloud.png');
-  background-size: 200%;
-  background-repeat: repeat-x;
-  animation: fog 15s linear infinite;
-  z-index: 1;
-}
-
-@keyframes fog{
-  0% {
-    background-position: -500% 0;
-  }
-  100%{
-    background-position: 500% 0;
-  }
-}
-
+// === Адаптивность ===
 @media (max-width: 750px) {
-  .Mist, .Fog{
-  background-size: 500%;
-  animation-duration: 30s;
+  .Mist, .Fog {
+    background-size: 500%;
+    animation-duration: 30s;
+  }
 }
-}
-
-
-
-#background-img.warm{
-  background-image: url("./assets/image/warm-bg.png");
-}
-
-#app{
-  background-color: #8398a1;
-}
-
-#app.warm{
-  background-color: #a13b84;
-  background-size:cover;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-
-
 </style>
