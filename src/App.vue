@@ -1,35 +1,40 @@
 <template>
   <div id="app" :class="{
     'warm': weather.main && weather.main.temp > 16
-    }">
+  }">
     <div id="background-img" :class="{
-    'warm': weather.main && weather.main.temp > 16
+      'warm': weather.main && weather.main.temp > 16
     }">
-    <div :class="{
-    [weather.weather && weather.weather[0] ? weather.weather[0].main : '']: typeof weather.main !== 'undefined' && weather.main !== null
-    }"></div>
-    <main>
-      <div class="search-box">
-        <input 
-          type="text" 
-          class="search-bar" 
-          placeholder="Поиск..." 
-          name="search"
-          v-model="query"
-          @keypress="fetchWeather"
-        />
-      </div>
-      <div class="weather-wrap" v-if="typeof weather.main != 'undefined'">
-        <div class="location-box">
-          <div class="location">{{ weather.name }}, {{ weather.sys.country }}</div>
-          <div class="date">{{ dateBuilder() }}</div>
+      <div :class="{
+        [weather.weather && weather.weather[0] ? weather.weather[0].main : '']: typeof weather.main !== 'undefined' && weather.main !== null
+      }"></div>
+      <main>
+        <div class="search-box">
+          <input 
+            type="text" 
+            class="search-bar" 
+            placeholder="Поиск..." 
+            name="search"
+            v-model="query"
+            @keypress="fetchWeather"
+          />
         </div>
-        <div class="weather-box">
-          <div class="temp">{{ Math.round(weather.main.temp) }}℃</div>
-          <div class="weather">{{ translateWeather(weather.weather[0].main) }}</div>
+
+        <!-- Анимация загрузки -->
+        <div v-if="isLoading" class="loader"></div>
+
+        <!-- Отображение погоды, если данные получены -->
+        <div class="weather-wrap" v-if="typeof weather.main != 'undefined' && !isLoading">
+          <div class="location-box">
+            <div class="location">{{ weather.name }}, {{ weather.sys.country }}</div>
+            <div class="date">{{ dateBuilder() }}</div>
+          </div>
+          <div class="weather-box">
+            <div class="temp">{{ Math.round(weather.main.temp) }}℃</div>
+            <div class="weather">{{ translateWeather(weather.weather[0].main) }}</div>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
     </div>
   </div>
 </template>
@@ -43,30 +48,38 @@
         url_base: 'https://api.openweathermap.org/data/2.5/',   
         query: '',
         weather: {},
+        isLoading: false, // Переменная для управления анимацией загрузки
       }
     },
     mounted() {
-      this.fetchWeather();
-      setInterval(this.fetchWeather, 300000);
+      this.fetchWeather(); // Сразу вызвать при монтировании компонента
+      setInterval(this.fetchWeather, 300000); // Обновление каждые 5 минут
     },
     methods: {
       async fetchWeather(e) {
         if (e && e.key !== "Enter") return;
         if (!this.query && (!this.weather.name || !this.weather.sys)) return;
 
+        this.isLoading = true;
+
         try {
           const city = this.query || this.weather.name;
           const response = await fetch(`${this.url_base}weather?q=${city}&units=metric&APPID=${this.api_key}`);
           const data = await response.json();
 
-          this.setResults(data);
+          
+          setTimeout(() => {
+            this.setResults(data);
+            this.isLoading = false; 
+          }, 2500);
 
           console.log("Новые данные:", data); 
         } catch (error) {
           console.error("Ошибка загрузки погоды:", error);
+          this.isLoading = false;
         }
       },
-      setResults (results){
+      setResults(results) {
         this.weather = results;
       },
       translateWeather(weatherCondition) {
@@ -82,7 +95,7 @@
         };
         return weatherTranslations[weatherCondition] || weatherCondition;
       },
-      dateBuilder(){
+      dateBuilder() {
         let d = new Date();
         let months = ["Январь","Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
         let days = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
@@ -102,6 +115,21 @@
 @mixin fontSizeWeight ($fs, $fw){
   font-size: $fs;
   font-weight: $fw;
+}
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+  margin: 2rem auto;
+  transition: 0.6s;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 #background-img{
