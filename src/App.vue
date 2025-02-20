@@ -35,7 +35,6 @@
 </template>
 
 <script>
-
   export default {
     name: 'App',
     data() {
@@ -46,19 +45,23 @@
         weather: {},
       }
     },
+    mounted() {
+      this.fetchWeather();
+      setInterval(this.fetchWeather, 300000);
+    },
     methods: {
-    async fetchWeather(e) {
-      if (e && e.key !== "Enter") return;
-      if (!this.query && (!this.weather.name || !this.weather.sys)) return;
+      async fetchWeather(e) {
+        if (e && e.key !== "Enter") return;
+        if (!this.query && (!this.weather.name || !this.weather.sys)) return;
 
-      try {
-        const city = this.query || this.weather.name;
-        const response = await fetch(`${this.url_base}weather?q=${city}&units=metric&APPID=${this.api_key}`);
-        const data = await response.json();
+        try {
+          const city = this.query || this.weather.name;
+          const response = await fetch(`${this.url_base}weather?q=${city}&units=metric&APPID=${this.api_key}`);
+          const data = await response.json();
 
-        this.setResults(data);
+          this.setResults(data);
 
-        console.log("Новые данные:", data); 
+          console.log("Новые данные:", data); 
         } catch (error) {
           console.error("Ошибка загрузки погоды:", error);
         }
@@ -91,7 +94,6 @@
 
         return `${day} ${date} ${month} ${year}`;
       }
-
     }
   }
 </script>
